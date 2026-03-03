@@ -1,0 +1,79 @@
+
+# ## Инициализация проекта
+using DrWatson
+@quickactivate "project"
+using DifferentialEquations
+using Plots
+default(fmt = :png)
+
+# ## 1. Постановка задачи и вывод уравнений
+#
+# **Параметры:**
+# - $k = 10$ км — начальное расстояние.
+# - $v$ — скорость лодки.
+# - $V = 3.4v$ — скорость катера ($n = 3.4$).
+#
+# **Уравнение движения:**
+# Траектория катера описывается уравнением:
+# $\frac{dr}{d\theta} = \frac{r}{\sqrt{n^2 - 1}}$
+#
+# Для нашего случая: $\sqrt{3.4^2 - 1} = \sqrt{11.56 - 1} = \sqrt{10.56}$
+# $\frac{dr}{d\theta} = \frac{r}{\sqrt{10.56}}$
+#
+# **Начальные условия:**
+# 1. Случай 1 (катер и лодка по одну сторону от полюса): $\theta_0 = 0, r_0 = \frac{10}{3.4 + 1} = \frac{10}{4.4}$
+# 2. Случай 2 (полюс между ними): $\theta_0 = -\pi, r_0 = \frac{10}{3.4 - 1} = \frac{10}{2.4}$
+
+k = 10.0
+n = 3.4
+fi = 3*pi/4 # Заданный угол направления лодки
+
+script_name = "lab02_task"
+mkpath(plotsdir(script_name))
+
+## Функция ДУ
+function f(r, p, theta)
+    return r / sqrt(n^2 - 1)
+end
+
+# ## 2. Решение и построение траекторий
+
+# ### Случай 1
+r0_1 = k / (n + 1)
+tspan1 = (0.0, 2*pi)
+prob1 = ODEProblem(f, r0_1, tspan1)
+sol1 = solve(prob1, Tsit5(), saveat=0.01)
+
+# ### Случай 2
+r0_2 = k / (n - 1)
+tspan2 = (-pi, pi)
+prob2 = ODEProblem(f, r0_2, tspan2)
+sol2 = solve(prob2, Tsit5(), saveat=0.01)
+
+# ## 3. Визуализация и поиск точки пересечения
+
+## Данные для траектории лодки
+theta_boat = [fi, fi]
+r_boat = [0, 20]
+
+## График 1
+p1 = plot(sol1.t, sol1.u, proj=:polar, lims=(0,20), title="Сценарий 1", label="Катер", lw=2)
+plot!(p1, theta_boat, r_boat, label="Лодка", linestyle=:dash, color=:red)
+
+## График 2
+p2 = plot(sol2.t, sol2.u, proj=:polar, lims=(0,20), title="Сценарий 2", label="Катер", lw=2)
+plot!(p2, theta_boat, r_boat, label="Лодка", linestyle=:dash, color=:red)
+
+final_plot = plot(p1, p2, layout=(1,2), size=(1000, 500))
+
+# ## Результаты анализа
+# Точки пересечения (расстояние $r$ при угле $\theta = \phi$):
+r_meet1 = sol1(fi)
+r_meet2 = sol2(fi)
+
+println("Точка пересечения 1: r = ", round(r_meet1, digits=3), " км, θ = ", round(fi, digits=3))
+println("Точка пересечения 2: r = ", round(r_meet2, digits=3), " км, θ = ", round(fi, digits=3))
+
+# Сохранение и вывод
+savefig(final_plot, plotsdir(script_name, "pursuit.png"))
+final_plot

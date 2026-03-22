@@ -1,67 +1,310 @@
 ---
-## Author
-author:
-  name: Дмитрий Сергеевич Кулябов
-  degrees: DSc
-  orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
-  affiliation:
-    - name: Российский университет дружбы народов
-      country: Российская Федерация
-      postal-code: 117198
-      city: Москва
-      address: ул. Миклухо-Маклая, д. 6
+## Front matter
+title: "Этап 1"
+subtitle: "Математическое моделирование распространения фронта экзотермической реакции с учетом стохастических флуктуаций"
+author: 
 
-## Title
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
-license: "CC BY"
+  - Мурашов И. В.,
+  - Сахно Н. В.,
+  - Машков И. В.,
+
+## Generic otions
+lang: ru-RU
+toc-title: "Содержание"
+
+## Bibliography
+bibliography: bib/cite.bib
+
+## Pdf output format
+toc: true # Table of contents
+toc-depth: 2
+lof: true # List of figures
+lot: true # List of tables
+fontsize: 12pt
+linestretch: 1.5
+papersize: a4
+documentclass: scrreprt
+## I18n polyglossia
+polyglossia-lang:
+  name: russian
+polyglossia-otherlangs:
+  name: english
+## I18n babel
+babel-lang: russian
+babel-otherlangs: english
+## Fonts
+mainfont: PT Serif
+romanfont: PT Serif
+sansfont: PT Sans
+monofont: PT Mono
+mainfontoptions: Ligatures=TeX
+romanfontoptions: Ligatures=TeX
+sansfontoptions: Ligatures=TeX,Scale=MatchLowercase
+monofontoptions: Scale=MatchLowercase,Scale=0.9
+## Biblatex
+biblatex: true
+biblio-style: "gost-numeric"
+biblatexoptions:
+  - parentracker=true
+  - backend=biber
+  - hyperref=auto
+  - language=auto
+  - autolang=other*
+  - citestyle=gost-numeric
+## Pandoc-crossref LaTeX customization
+figureTitle: "Рис."
+tableTitle: "Таблица"
+listingTitle: "Листинг"
+lofTitle: "Список иллюстраций"
+lotTitle: "Список таблиц"
+lolTitle: "Листинги"
+## Misc options
+indent: true
+header-includes:
+  - \usepackage{indentfirst}
+  - \usepackage{float} # keep figures where there are in the text
+  - \floatplacement{figure}{H} # keep figures where there are in the text
 ---
 
-# Цель работы
+# Введение
 
-Здесь приводится формулировка цели лабораторной работы.
-Формулировки цели для каждой лабораторной работы приведены в методических указаниях.
+**Актуальность**
 
-Цель данного шаблона --- максимально упростить подготовку отчётов по лабораторным работам.
-Модифицируя данный шаблон, студенты смогут без труда подготовить отчёт по лабораторным работам, а также познакомиться с основными возможностями разметки Markdown.
+Процессы горения и химических реакций играют ключевую роль в энергетике, промышленности и природных явлениях. В частности, экзотермические реакции с распространением фронта широко встречаются в задачах горения, детонации, синтеза материалов и химической технологии.
 
-# Задание
+Классические модели кинетики химических реакций, как правило, рассматривают процессы в детерминированной постановке, предполагая однородность среды и гладкое изменение концентраций реагентов. Однако в реальных системах существенную роль играют стохастические флуктуации, обусловленные тепловым движением, неоднородностью среды и дискретной природой частиц.
 
-Здесь приводится описание задания в соответствии с рекомендациями методического пособия и выданным вариантом.
+Особенно важно учитывать такие флуктуации при исследовании распространения фронта реакции, поскольку даже малые случайные отклонения концентрации могут приводить к изменению скорости фронта, его устойчивости и структуры. Таким образом, исследование влияния стохастических флуктуаций является необходимым для более полного понимания кинетики химических реакций.
 
-# Теоретическое введение
+**Объект и предмет исследования**
 
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
+- Процессы распространения фронта экзотермической химической реакции
+- Реакционно-диффузионные системы со случайными возмущениями
+- Влияние стохастических флуктуаций концентрации реагентов на скорость и структуру фронта реакции
+- Изменение кинетических характеристик системы при наличии случайных возмущений.
 
-Например, в [табл. @tbl-std-dir] приведено краткое описание стандартных каталогов Unix.
+**Цель работы**
 
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
+Построить математическую модель распространения фронта экзотермической реакции с учетом стохастических флуктуаций и исследовать их влияние на кинетику процесса. 
 
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl-std-dir}
+**Задачи**
 
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+- Построить детерминированную модель распространения фронта экзотермической реакции
+- Построить стохастическую модель с учетом флуктуаций концентрации реагентов
+- Сравнить поведение фронта реакции в детерминированной и стохастической моделях
+- Определить характеристики фронта: скорость, структуру, устойчивость
+- Построить графики зависимости характеристик фронта реакции от уровня стохастических флуктуаций.
 
-# Выполнение лабораторной работы
+# Теоретическое описание задачи
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию ([рис. @fig-001]).
+## Научная проблема: Переход от детерминированных к стохастическим моделям горения
 
-![V Сольвеевский конгресс (1927) «Электроны и фотоны»](image/solvay.jpg){#fig-001 width=70%}
+Современная теория горения и химической кинетики на протяжении десятилетий опиралась на детерминированные уравнения реакционно-диффузионного типа, такие как классическое уравнение Зельдовича — Франк-Каменецкого (ЗФК) и уравнение Колмогорова — Петровского — Пискунова (КПП). Эти модели предполагают, что концентрации реагентов и температура являются непрерывными полями, эволюция которых диктуется законами среднего поля. Однако в последние десятилетия стало очевидным, что такая аппроксимация перестает быть адекватной при рассмотрении процессов в микромасштабах, вблизи пределов воспламенения или в условиях сильной неоднородности среды.
+
+Научная проблема заключается в необходимости учета дискретной природы вещества и случайного характера молекулярных столкновений, которые порождают внутренний шум в системе. Этот «дробовой шум» (shot noise) или стохастические флуктуации не просто вносят малые возмущения в гладкие решения, но могут качественно изменять динамику фронта: вызывать систематический сдвиг средней скорости распространения, приводить к диффузионному блужданию положения пламени и формировать сложную шероховатую морфологию поверхности. В условиях высокоэнергетических реакций, где кинетика критически зависит от локальных температурных пиков, стохастические эффекты могут стать доминирующим механизмом, определяющим устойчивость и саму возможность существования волны горения.
+
+Развитие стохастических моделей горения критически важно для проектирования микроэнергетических установок, исследования процессов в пористых средах и понимания механизмов перехода от медленного горения к детонации в загроможденных пространствах. Настоящий отчет представляет собой глубокий анализ теоретических основ и построение математической модели, объединяющей классическую теорию ЗФК с аппаратом стохастических дифференциальных уравнений в частных производных (СДУЧП).
+
+---
+
+## Теоретическое описание задачи: Детерминированные основы и реакционно-диффузионные фронты
+
+### Уравнение Зельдовича — Франк-Каменецкого (ЗФК)
+
+В 1938 году Я.Б. Зельдович и Д.А. Франк-Каменецкий сформулировали теорию теплового распространения пламени, в основе которой лежит предположение о сильной температурной зависимости скорости реакции (закон Аррениуса). В безразмерных переменных одномерное уравнение для температуры $\theta$ имеет вид:
+
+$$
+\frac{\partial \theta}{\partial t} = \frac{\partial^2 \theta}{\partial x^2} + w(\theta)
+$$
+
+Реакционный член $w(\theta)$ определяется числом Зельдовича $\beta$:
+
+$$
+w(\theta) = \frac{\beta^2}{2} \theta^n (1-\theta) \exp \left[ -\frac{\beta(1-\theta)}{1 - \alpha(1-\theta)} \right]
+$$
+
+Где $\beta = \frac{E_a (T_b - T_u)}{R T_b^2}$ — число Зельдовича, отражающее чувствительность скорости реакции к температуре, а $\alpha = \frac{T_b - T_u}{T_b}$ — безразмерный температурный скачок. Основная особенность модели ЗФК заключается в том, что при больших значениях $\beta$ реакция практически не идет в холодной зоне и локализуется в крайне узком слое вблизи температуры горения. Это делает фронт ЗФК «толкающим» (pushed front), так как его динамика определяется процессами в горячей области.
+
+### Уравнение Колмогорова — Петровского — Пискунова (КПП)
+
+Скорость «тянущего» фронта $c$ определяется линеаризованной динамикой на переднем крае:
+
+$$
+c_{KPP} = 2\sqrt{w'(0)}
+$$
+
+Для задачи горения различие между режимами КПП и ЗФК является фундаментальным. Переход между ними зависит от формы функции источника и величины числа Зельдовича. При умеренных $\beta$ возможен режим KPP–ZFK перехода, где на скорость фронта влияют как процессы в хвосте, так и интегральное тепловыделение в зоне реакции.
+
+| Характеристика | Модель КПП | Модель ЗФК |
+| :--- | :--- | :--- |
+| **Тип фронта** | Тянущий (Pulled) | Толкающий (Pushed) |
+| **Ведущий механизм** | Динамика в области малых $u$ | Реакция вблизи температуры горения |
+| **Скорость волны** | $c = 2\sqrt{f'(0)}$ | $c = \sqrt{2 \int_0^1 w(\theta) d\theta}$ |
+| **Влияние шума** | Критическое (логарифмический сдвиг) | Умеренное (степенной сдвиг) |
+| **Физический пример** | Биологические популяции | Ламинарное пламя (высокая $E_a$) |
+
+Данная таблица подчеркивает, что стохастические флуктуации будут оказывать принципиально разное влияние в зависимости от того, в каком режиме находится система. Тянущие фронты крайне чувствительны к возмущениям на переднем крае, так как именно там формируется «ведущий центр» волны.
+
+## Математическая формализация стохастического горения
+
+Переход к стохастическому описанию требует замены детерминированных уравнений на стохастические дифференциальные уравнения (СДУ). Основным источником стохастичности в химических системах является дискретность молекулярных взаимодействий, которая при больших, но конечных числах частиц $N$ проявляется как внутренний шум. Переход к стохастическому описанию требует использования уравнения Ланжевена:
+
+$$
+\frac{\partial u}{\partial t} = D \nabla^2 u + f(u) + \sigma \sqrt{g(u)} \eta(x, t)
+$$
+
+где:
+- $D$ — коэффициент диффузии (или температуропроводности).
+- $f(u)$ — детерминированный реакционный член.
+- $\sigma$ — амплитуда шума, обычно пропорциональная 
+- $1/\sqrt{N}$.$\eta(x, t)$ — пространственно-временной белый гауссовый шум.
+- $\sqrt{g(u)}$ — функция, определяющая зависимость интенсивности шума от состояния системы. Для химических реакций часто принимается $g(u) = u(1-u)$, что обращает шум в ноль в стабильных состояниях (продукты и реагенты).
+
+Использование мультипликативного шума (где интенсивность шума зависит от $u$) отражает физическую реальность того, что флуктуации порождаются самими актами реакции. В областях, где реакция не идет ($u=0$ или $u=1$), шум должен отсутствовать.
+
+### Микроскопические основы: Master Equation и SSA
+
+Для обоснования вида стохастического члена можно обратиться к химическому управляющему уравнению (Chemical Master Equation, CME). Оно описывает вероятность нахождения системы в состоянии с заданным числом молекул. В пределе больших объемов и чисел частиц CME может быть аппроксимировано химическим уравнением Ланжевена.
+
+Однако для систем с малым числом частиц, таких как зона реакции в микрогорении, предпочтительнее использовать стохастический алгоритм моделирования (SSA) Гиллеспи или метод прямого статистического моделирования Монте-Карло (DSMC). Эти методы показывают, что дискретность столкновений приводит к значительным флуктуациям времени задержки воспламенения, особенно вблизи критических температур.
+
+| Метод моделирования | Уровень описания | Учет стохастики | Вычислительная сложность |
+| :--- | :--- | :--- | :--- |
+| **PDE (ЗФК/КПП)** | Макроскопический | Отсутствует (среднее поле) | Низкая |
+| **SPDE (Ланжевен)** | Мезоскопический | Гауссовый белый шум | Средняя |
+| **SSA (Gillespie)** | Микроскопический | Полный учет дискретности | Высокая |
+| **DSMC** | Молекулярный | Прямое моделирование частиц | Очень высокая |
+
+## Влияние стохастических флуктуаций на кинетику
+
+Одним из наиболее значимых результатов последних десятилетий в теории стохастических фронтов является обнаружение того факта, что шум не просто вызывает «дрожание» фронта, но и систематически изменяет его среднюю скорость.
+
+**Сдвиг Брюне — Деррида и эффект «отсечки» (Cut-off)** 
+В дискретных системах скорость фронта $v_N$ сходится к детерминированной скорости $v_0$ логарифмически:
+
+$$
+v_N \approx v_0 - \frac{\pi^2 D w'(0)}{(\ln N)^2}
+$$
+
+**Диффузия фронта и стохастическое блуждание** 
+В детерминированной модели положение фронта $X(t)$ меняется строго линейно: $X(t) = ct$. В стохастической системе фронт совершает случайные блуждания вокруг этого среднего положения. Дисперсия положения фронта растет со временем:
+
+$$
+\langle [X(t) - \langle X(t) \rangle]^2 \rangle = 2 D_f t
+$$
+
+## Морфология фронта: Универсальность КПЗ
+
+В двух- и трехмерных системах стохастический фронт перестает быть плоским и приобретает сложную геометрическую структуру. Описание эволюции такой поверхности раздела является одной из центральных задач стохастической динамики.
+
+Динамика шероховатых фронтов описывается уравнением Кардара — Паризи — Чжана:
+
+$$
+\frac{\partial h}{\partial t} = \nu \nabla^2 h + \frac{\lambda}{2} (\nabla h)^2 + \eta(x, t)
+$$
+
+В контексте горения наличие шума в дискретной среде (например, в пористой засыпке или при случайном распределении капель топлива) приводит к тому, что фронт пламени становится фрактально-подобным. Численные эксперименты с дискретными источниками тепла подтверждают, что при быстром выделении энергии и низкой температуре зажигания морфология фронта горения в точности соответствует классу универсальности КПЗ.
+
+| Режим морфологии | Физические условия | Масштабирование шероховатости |
+| :--- | :--- | :--- |
+| **Плоский фронт** | Детерминированная система, высокая диффузия | $w = const$ |
+| **КПЗ-шероховатость** | Стохастический шум, нелинейный рост | $w \sim t^{1/3}$ |
+| **Ячеистое пламя** | Термодиффузионная неустойчивость ($Le < 1$) | Регулярные или хаотические ячейки |
+
+## 6. Описание математической модели
+
+На основе проведенного теоретического анализа сформулируем конкретную математическую модель, которая будет исследована в рамках проекта. Целью является описание распространения одномерного и двумерного фронта экзотермической реакции с учетом внутреннего шума.
+
+### Уравнения модели
+Система в безразмерной форме:
+
+$$
+\frac{\partial \theta}{\partial t} = \nabla^2 \theta + Da \cdot Y \Phi(\theta) + \sigma_{\theta} \sqrt{Y \Phi(\theta)} \eta_{\theta}(x, t)
+$$
+
+$$
+\frac{\partial Y}{\partial t} = \frac{1}{Le} \nabla^2 Y - Da \cdot Y \Phi(\theta) + \sigma_{Y} \sqrt{Y \Phi(\theta)} \eta_{Y}(x, t)
+$$
+
+Где аррениусовская зависимость:
+
+$$
+\Phi(\theta) = \exp \left[ \frac{\beta(\theta - 1)}{1 + \alpha(\theta - 1)} \right]
+$$
+
+где:
+
+$\theta = (T - T_u) / (T_b - T_u)$ — безразмерная температура.
+$Y = C / C_0$ — безразмерная концентрация реагента.
+$Da$ — число Дамкёлера (безразмерная константа скорости).
+$Le$ — число Льюиса.
+$\Phi(\theta) = \exp \left[ \frac{\beta(\theta - 1)}{1 + \alpha(\theta - 1)} \right]$ — аррениусовская зависимость.
+$\sigma_{\theta}, \sigma_{Y}$ — параметры интенсивности стохастических флуктуаций.
+$\eta_{\theta}, \eta_{Y}$ — независимые источники белого гауссового шума.
+
+Вид стохастических слагаемых выбран в соответствии с концепцией дробового шума: интенсивность флуктуаций в каждой точке пропорциональна корню квадратному из локальной скорости реакции. Это гарантирует, что шум активен только в зоне протекания химического превращения.
+
+### Численные методы и алгоритмы
+
+Решение данной системы представляет собой серьезную вычислительную задачу из-за жесткости детерминированного реакционного члена (при больших $\beta$) и необходимости корректной обработки стохастических интегралов.
+
+1. Дискретизация: Пространственная дискретизация выполняется с использованием метода конечных разностей или спектрального метода на основе полиномов Лежандра, что позволяет с высокой точностью описывать резкие градиенты в зоне реакции.
+
+2. Интегрирование по времени: Для стохастической части используется схема Эйлера — Маруямы. Детерминированная часть интегрируется с использованием полунеявных схем (например, экспоненциальных интеграторов), чтобы избежать жестких ограничений на шаг по времени, накладываемых диффузионными операторами.
+
+3. Обработка шума: Приращение винеровского процесса $\Delta W$ на каждом шаге $\Delta t$ моделируется как $\sqrt{\Delta t} \cdot \zeta$, где $\zeta$ — нормально распределенная случайная величина с единичной дисперсией.
+
+| Параметр модели | Физический смысл | Диапазон исследования |
+| :--- | :--- | :--- |
+| **$\beta$ (Число Зельдовича)** | Энергия активации | 5 — 20 (от КПП к ЗФК) |
+| **$Le$ (Число Льюиса)** | Термодиффузионное отношение | 0.5 — 2.0 |
+| **$\sigma$ (Интенсивность шума)** | Обратное число частиц $1/\sqrt{N}$ | 0.001 — 0.1 |
+| **$Da$ (Число Дамкёлера)** | Скорость реакции | $10^2$ — $10^6$ |
+
+### Исследовательские задачи моделирования
+
+1. Определение систематического сдвига скорости: Путем усреднения по большому количеству реализаций ($10^3$–$10^4$) будет вычислен сдвиг средней скорости фронта $\Delta v = \langle v_{stoch} \rangle - v_{det}$ в зависимости от интенсивности шума и числа Зельдовича.
+
+2. Анализ диффузии фронта: Оценка коэффициента $D_f$ через наклон зависимости среднеквадратичного смещения фронта от времени. Сравнение полученных значений с теоретическими предсказаниями для «тянущих» и «толкающих» волн.
+
+3. Изучение пределов зажигания: Исследование вероятности погасания фронта под действием сильных флуктуаций в условиях, когда детерминированная модель предсказывает устойчивое распространение.
+
+4. Морфологический анализ (2D): Расчет пространственных корреляционных функций поверхности фронта для определения показателей масштабирования и подтверждения (или опровержения) принадлежности к классу КПЗ в различных кинетических режимах.
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
+В ходе выполнения первого этапа проекта было проведено теоретическое описание моделей распространения фронта экзотермической реакции с учетом стохастических флуктуаций концентрации реагентов и сформулированы задачи дальнейшего исследования.
 
-# Список литературы{.unnumbered}
+# Список литературы
 
-::: {#refs}
-:::
+1.  **ZFK equation** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/ZFK\_equation](https://en.wikipedia.org/wiki/ZFK_equation)
+2.  **(PDF) On Travelling Waves for the Stochastic Fisher–Kolmogorov...** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/30845897\_On\_Travelling\_Waves\_for\_the\_Stochastic\_Fisher-Kolmogorov-Petrovsky-Piscunov\_Equation](https://www.researchgate.net/publication/30845897_On_Travelling_Waves_for_the_Stochastic_Fisher-Kolmogorov-Petrovsky-Piscunov_Equation)
+3.  **Stochastic simulation of hydrogen–oxygen auto-ignition at the microscale** — AIP Publishing, accessed on March 21, 2026, [https://pubs.aip.org/aip/jcp/article-pdf/doi/10.1063/5.0154560/18093147/084105\_1\_5.0154560.pdf](https://pubs.aip.org/aip/jcp/article-pdf/doi/10.1063/5.0154560/18093147/084105_1_5.0154560.pdf)
+4.  **Influence of Microscopic Stochastic Properties on the Auto- Ignition of Hydrogen / Oxygen Mixture** — icders, accessed on March 21, 2026, [http://www.icders.org/ICDERS2017/abstracts/ICDERS2017-1052.pdf](http://www.icders.org/ICDERS2017/abstracts/ICDERS2017-1052.pdf)
+5.  **Speed fluctuations of a stochastic Huxley–Zel'dovich front** — arXiv.org, accessed on March 21, 2026, [https://arxiv.org/html/2603.13458v1](https://arxiv.org/html/2603.13458v1)
+6.  **Effect of Microscopic Noise on Front Propagation** — ENS, accessed on March 21, 2026, [https://www.phys.ens.fr/\~ebrunet/Papers/BrunetDerrida.01.pdf](https://www.phys.ens.fr/~ebrunet/Papers/BrunetDerrida.01.pdf)
+7.  **Frank-Kamenetskii theory** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/Frank-Kamenetskii\_theory](https://en.wikipedia.org/wiki/Frank-Kamenetskii_theory)
+8.  **A Numerical Study of a Simple Stochastic/ Deterministic Model of Cycle-to-Cycle Combustion Fluctuations in Spark Ignition Engines** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/2146689\_A\_Numerical\_Study\_of\_a\_Simple\_Stochastic\_Deterministic\_Model\_of\_Cycle-to-Cycle\_Combustion\_Fluctuations\_in\_Spark\_Ignition\_Engines](https://www.researchgate.net/publication/2146689_A_Numerical_Study_of_a_Simple_Stochastic_Deterministic_Model_of_Cycle-to-Cycle_Combustion_Fluctuations_in_Spark_Ignition_Engines)
+9.  **Investigation of scalar dissipation rate fluctuations in non-premixed turbulent combustion using a stochastic approach** — Stanford University, accessed on March 21, 2026, [https://web.stanford.edu/group/pitsch/publication/PitschCTM\_5\_2001.pdf](https://web.stanford.edu/group/pitsch/publication/PitschCTM_5_2001.pdf)
+10. **Effect of small heat release and viscosity on thermal-diffusive...** — PMC, accessed on March 21, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC8511008/](https://pmc.ncbi.nlm.nih.gov/articles/PMC8511008/)
+11. **Traveling Waves and Exponential Nonlinearities in the Zeldovich–Frank-Kamenetskii Equation** — SIAM Journal on Applied Dynamical Systems, accessed on March 21, 2026, [https://epubs.siam.org/doi/10.1137/24M166200X](https://epubs.siam.org/doi/10.1137/24M166200X)
+12. **The critical wave speed for the fisher-kolmogorov-petrowskii-piscounov equation with cut-off** — Department of Mathematics and Statistics, accessed on March 21, 2026, [http://math.bu.edu/people/popovic/downloads/dpk2.pdf](http://math.bu.edu/people/popovic/downloads/dpk2.pdf)
+13. **Thermally Driven Convection Generated by Reaction Fronts in Viscous Fluids** — MDPI, accessed on March 21, 2026, [https://www.mdpi.com/2073-8994/16/3/269](https://www.mdpi.com/2073-8994/16/3/269)
+14. **Effect of Convection on a Propagating Front with a Solid Product: Comparison of Theory and Experiments** — The Journal of Physical Chemistry B, accessed on March 21, 2026, [https://pubs.acs.org/doi/10.1021/jp962354b](https://pubs.acs.org/doi/10.1021/jp962354b)
+15. **Front Roughening of Flames in Discrete Media** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/312907945\_Front\_Roughening\_of\_Flames\_in\_Discrete\_Media](https://www.researchgate.net/publication/312907945_Front_Roughening_of_Flames_in_Discrete_Media)
+16. **Stochastic Differential Equations for Chemical...** — eBooks, accessed on March 21, 2026, [https://content.e-bookshelf.de/media/reading/L-25005902-e7a8c784cf.pdf](https://content.e-bookshelf.de/media/reading/L-25005902-e7a8c784cf.pdf)
+17. **Interacting particles, the stochastic Fisher–Kolmogorov–Petrovsky–Piscounov equation, and duality** — IDEAS/RePEc, accessed on March 21, 2026, [https://ideas.repec.org/a/eee/phsmap/v325y2003i1p243-259.html](https://ideas.repec.org/a/eee/phsmap/v325y2003i1p243-259.html)
+18. **Langevin equation** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/Langevin\_equation](https://en.wikipedia.org/wiki/Langevin_equation)
+19. **Stochastic modeling and simulation of reaction-diffusion system with Hill function dynamics** — PMC, accessed on March 21, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC5374650/](https://pmc.ncbi.nlm.nih.gov/articles/PMC5374650/)
+20. **(PDF) The critical wave speed for the Fisher–Kolmogorov–Petrowskii–Piscounov equation with cut-off** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/228681026\_The\_critical\_wave\_speed\_for\_the\_Fisher-Kolmogorov-Petrowskii-Piscunov\_equation\_with\_cut-off](https://www.google.com/search?q=https://www.researchgate.net/publication/228681026_The_critical_wave_speed_for_the_Fisher-Kolmogorov-Petrowskii-Piscunov_equation_with_cut-off)
+21. **Shift in the velocity of a front due to a cutoff** — Département de physique de l'ENS, accessed on March 21, 2026, [http://www.lps.ens.fr/\~derrida/PAPIERS/1997/PRE97.pdf](http://www.lps.ens.fr/~derrida/PAPIERS/1997/PRE97.pdf)
+22. **Brunet-Derrida velocity shift for branching-selection particle systems** — Stanford University, accessed on March 21, 2026, [http://math.stanford.edu/\~ryzhik/BANFF/berard.pdf](http://math.stanford.edu/~ryzhik/BANFF/berard.pdf)
+23. **(PDF) Investigation of scalar dissipation rate fluctuations in non-premixed turbulent combustion using a stochastic approach** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/228597840\_Investigation\_of\_scalar\_dissipation\_rate\_fluctuations\_in\_non-premixed\_turbulent\_combustion\_using\_a\_stochastic\_approach](https://www.researchgate.net/publication/228597840_Investigation_of_scalar_dissipation_rate_fluctuations_in_non-premixed_turbulent_combustion_using_a_stochastic_approach)
+24. **arXiv:cond-mat/9511039v1 8 Nov 1995** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/profile/Rodolfo\_Cuerno/publication/1866434\_Stochastic\_Model\_for\_Surface\_Erosion\_Via\_Ion-Sputtering\_Dynamical\_Evolution\_from\_Ripple\_Morphology\_to\_Rough\_Morphology/links/02bfe50caf4b42c0cd000000/Stochastic-Model-for-Surface-Erosion-Via-Ion-Sputtering-Dynamical-Evolution-from-Ripple-Morphology-to-Rough-Morphology.pdf](https://www.researchgate.net/profile/Rodolfo_Cuerno/publication/1866434_Stochastic_Model_for_Surface_Erosion_Via_Ion-Sputtering_Dynamical_Evolution_from_Ripple_Morphology_to_Rough_Morphology/links/02bfe50caf4b42c0cd000000/Stochastic-Model-for-Surface-Erosion-Via-Ion-Sputtering-Dynamical-Evolution-from-Ripple-Morphology-to-Rough-Morphology.pdf)
+25. **[1701.07167] Front Roughening of Flames in Discrete Media** — arXiv.org, accessed on March 21, 2026, [https://arxiv.org/abs/1701.07167](https://arxiv.org/abs/1701.07167)
+26. **Chapter 2 - Thermodynamics of Combustion** — NRC, accessed on March 21, 2026, [https://www.nrc.gov/docs/ML1310/ML13109A563.pdf](https://www.nrc.gov/docs/ML1310/ML13109A563.pdf)
+27. **Numerical treatment of tempered space-fractional zeldovich-frank-kamenetskii equation** — Romanian Reports in Physics, accessed on March 21, 2026, [https://rrp.nipne.ro/IP/AP821.pdf](https://rrp.nipne.ro/IP/AP821.pdf)
+28. **Tracking the Frank-Kamenetskii Problem** — Wolfram Demonstrations Project, accessed on March 21, 2026, [https://demonstrations.wolfram.com/TrackingTheFrankKamenetskiiProblem/](https://demonstrations.wolfram.com/TrackingTheFrankKamenetskiiProblem/)
+29. **Application of Stochastic Differential System in Chemical Reactions...** — MATCH, accessed on March 21, 2026, [https://match.pmf.kg.ac.rs/electronic\_versions/Match71/n2/match71n2\_265-277.pdf](https://match.pmf.kg.ac.rs/electronic_versions/Match71/n2/match71n2_265-277.pdf)
+30. **Stochastic Partial Differential Equations Lecture Notes** — TU Berlin, accessed on March 21, 2026, [https://page.math.tu-berlin.de/\~scheutzow/SPDEmain.pdf](https://page.math.tu-berlin.de/~scheutzow/SPDEmain.pdf)
+31. **A Gentle Introduction to Stochastic Differential Equations with Brownian Noise** — University of Vaasa, accessed on March 21, 2026, [https://lipas.uwasa.fi/\~tsottine/lecture\_notes/sde\_sottinen.pdf](https://lipas.uwasa.fi/~tsottine/lecture_notes/sde_sottinen.pdf)

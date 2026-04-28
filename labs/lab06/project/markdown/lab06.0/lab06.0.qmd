@@ -1,0 +1,93 @@
+## Инициализация проекта
+
+```{julia}
+using Pkg
+Pkg.activate("../project")
+using DrWatson
+using DifferentialEquations
+using Plots
+```
+
+Настройки графики
+
+```{julia}
+gr()
+default(fmt = :png, size = (800, 500), titlefont = font(10))
+```
+
+## 1. Параметры модели (Вариант 19)
+
+```{julia}
+N = 12000            # Общая численность популяции
+I0 = 120             # Число заболевших в начальный момент
+R0 = 20              # Здоровые с иммунитетом
+S0 = N - I0 - R0     # Восприимчивые особи
+u0 = [S0, I0, R0]
+
+alpha = 0.01         # Коэффициент заболеваемости
+beta = 0.02          # Коэффициент выздоровления
+tspan = (0.0, 100.0)
+```
+
+## 2. Определение функций системы
+
+Случай 1: I(t) <= I* (инфекция не распространяется)
+
+```{julia}
+function epidemic_case1!(du, u, p, t)
+    S, I, R = u
+    du[1] = 0
+    du[2] = -beta * I
+    du[3] = beta * I
+end
+```
+
+Случай 2: I(t) > I* (эпидемия распространяется)
+
+```{julia}
+function epidemic_case2!(du, u, p, t)
+    S, I, R = u
+    du[1] = -alpha * S
+    du[2] = alpha * S - beta * I
+    du[3] = beta * I
+end
+```
+
+## 3. Решение и визуализация
+
+Решение для первого случая
+
+```{julia}
+prob1 = ODEProblem(epidemic_case1!, u0, tspan)
+sol1 = solve(prob1, Tsit5(), saveat=0.1)
+```
+
+Решение для второго случая
+
+```{julia}
+prob2 = ODEProblem(epidemic_case2!, u0, tspan)
+sol2 = solve(prob2, Tsit5(), saveat=0.1)
+```
+
+Построение графиков
+
+```{julia}
+p1 = plot(sol1, title="Эпидемия: случай I(t) <= I*",
+          xlabel="t", ylabel="Численность",
+          label=["S(t)" "I(t)" "R(t)"], lw=2)
+
+p2 = plot(sol2, title="Эпидемия: случай I(t) > I*",
+          xlabel="t", ylabel="Численность",
+          label=["S(t)" "I(t)" "R(t)"], lw=2)
+
+layout = plot(p1, p2, layout=(2,1))
+display(layout)
+```
+
+Сохранение результатов
+
+```{julia}
+mkpath(plotsdir("lab06"))
+savefig(layout, plotsdir("lab06", "epidemic_results.png"))
+```
+

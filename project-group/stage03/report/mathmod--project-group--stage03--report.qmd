@@ -1,10 +1,7 @@
 ---
 ## Author
 author:
-  name: Дмитрий Сергеевич Кулябов
-  degrees: DSc
-  orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
+  name: Стрижов Д.П., Мурашов И.В, Сахно Н. В., Машков И.Е.
   affiliation:
     - name: Российский университет дружбы народов
       country: Российская Федерация
@@ -13,55 +10,175 @@ author:
       address: ул. Миклухо-Маклая, д. 6
 
 ## Title
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
-license: "CC BY"
+title: "Этап 3"
+subtitle: "Математическое моделирование распространения фронта экзотермической реакции с учетом стохастических флуктуаций"
 ---
 
-# Цель работы
+# Вводная часть
 
-Здесь приводится формулировка цели лабораторной работы.
-Формулировки цели для каждой лабораторной работы приведены в методических указаниях.
+## Цель проекта на данном этапе
 
-Цель данного шаблона --- максимально упростить подготовку отчётов по лабораторным работам.
-Модифицируя данный шаблон, студенты смогут без труда подготовить отчёт по лабораторным работам, а также познакомиться с основными возможностями разметки Markdown.
+Целью третьего этапа проекта является непосредственная реализация программной части моделей.
 
-# Задание
+## Задачи
 
-Здесь приводится описание задания в соответствии с рекомендациями методического пособия и выданным вариантом.
+1. Реализация программного кода для **Детерминированного фронта ЗФК**
+2. Реализация программного кода для **Детерминированного фронта КПП**
+3. Реализация программного кода для **Стохастическое уравнение Ланжевена**
 
-# Теоретическое введение
 
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
+# Основная часть
+## Общий алгоритм для всех моделей
+### Пространственная дискретизация
 
-Например, в [табл. @tbl-std-dir] приведено краткое описание стандартных каталогов Unix.
+Использовать центральные разности второго порядка для аппроксимации оператора Лапласа:
 
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
+$$
+\nabla^2 u \approx \frac{u_{i+1} - 2u_i + u_{i-1}}{(\Delta x)^2}
+$$
 
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl-std-dir}
+Оператор должен быть представлен в виде матрицы для ускорения вычислений.
 
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
+### Формирование SDE задачи
 
-# Выполнение лабораторной работы
+В Julia функции дрейфа (drift) и диффузии (diffusion) должны быть определены раздельно.  
+Функция диффузии инкапсулирует стохастический член $\sigma g(u)$.
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию ([рис. @fig-001]).
+### Выбор решателя и стабильность
 
-![V Сольвеевский конгресс (1927) «Электроны и фотоны»](image/solvay.jpg){#fig-001 width=70%}
+- Для нежёстких стохастических задач — методы типа **SRIW1** (высокий порядок).
+- Для жёстких систем (ЗФК) — специализированные решатели для жёстких СДУ, такие как семейство **SROCK** (Stochastic Runge–Kutta Chebyshev).
+
+Этот теоретический фундамент позволяет перейти к непосредственному написанию кода, обеспечивая математическую строгость и вычислительную эффективность программного комплекса.
+
+## Программная реализация **Детерминированного фронта ЗФК**
+
+1. **Пространственная дискретизация**  
+   - Область $$x \in [0, L]$$ разбивается равномерной сеткой с шагом $$dx = 0.5$$.  
+   - Оператор Лапласа аппроксимируется **центральной разностью второго порядка**:  
+     $$
+     \frac{\partial^2\theta}{\partial x^2} \approx \frac{\theta_{i-1} - 2\theta_i + \theta_{i+1}}{dx^2}.
+     $$
+   - Граничные условия Дирихле: $$\theta(0,t)=1,\; \theta(L,t)=0$$ – вшиты непосредственно в разностную схему (фиктивные узлы заменяются граничными значениями).  
+   - Матрица оператора явно не формируется, но диффузионный член вычисляется в цикле (метод прямых).
+
+2. **Формирование задачи**  
+   - После дискретизации получается система **ОДУ** (не SDE) для температур в узлах:  
+     $$
+     \frac{d\theta_i}{dt} = \frac{\theta_{i-1} - 2\theta_i + \theta_{i+1}}{dx^2} + w(\theta_i),
+     $$
+     где $$w(\theta)$$ — реакционный член Зельдовича–Франк-Каменецкого.  
+   - Функция `zfk_dynamics!` реализует правую часть (дрейф). Стохастическая диффузия отсутствует.  
+   - Начальное условие – ступенька: $$\theta(x,0)=1$$ при $$x<5$$, иначе $$0$$.
+
+3. **Выбор решателя и обеспечение стабильности**  
+   - Задача **жесткая** (особенно при больших $$\beta$$). Используется **неявный метод Розенброка** `Rosenbrock23()`, подходящий для жестких систем ОДУ.  
+   - Параметры точности: `reltol=abstol=1e-6`.  
+   - (Примечание: для стохастического варианта (SDE) потребовался бы решатель типа `SROCK`, но в данной программе шум не моделируется.)
+
+{{< include ../project/markdown/model01/model01.qmd >}}
+
+## Программная реализация **Детерминированного фронта КПП**
+
+1. **Пространственная дискретизация**  
+   - Область $$x \in [0, L]$$ разбивается равномерной сеткой с шагом \(dx = 0.5\).  
+   - Оператор Лапласа аппроксимируется **центральной разностью второго порядка**:  
+     $$
+     \frac{\partial^2 u}{\partial x^2} \approx \frac{u_{i-1} - 2u_i + u_{i+1}}{dx^2}.
+     $$
+   - Граничные условия Дирихле: $$u(0,t)=1$$ (прореагировавшая зона), $$u(L,t)=0$$ (несмесь) – вшиты непосредственно в схему.  
+   - Диффузионный член умножается на коэффициент диффузии $$D = 1.0$$.
+
+2. **Формирование задачи**  
+   - После дискретизации получается система **ОДУ** для концентраций в узлах:  
+     $$
+     \frac{du_i}{dt} = D\,\frac{u_{i-1} - 2u_i + u_{i+1}}{dx^2} + f(u_i),
+     $$
+     где реакционный член $$f(u) = u(1-u)$$ (логистический рост).  
+   - Начальное условие – сглаженная ступенька: $$u(x,0) \approx 1$$ при $$x<20$$, $$0$$ при $$x>20$$ с линейным переходом.  
+   - Функция `kpp_dynamics!` вычисляет правую часть.
+
+3. **Выбор решателя**  
+   - Система нежёсткая, но для единообразия используется **неявный метод Розенброка** `Rosenbrock23()` с допусками `1e-6`.  
+   - Решение сохраняется в 200 равноотстоящих моментах времени (`saveat`).
+
+4. **Анализ скорости фронта (ключевой этап)**  
+   - **Положение фронта** вычисляется по интегральной формуле:  
+     $$
+     X(t) = \int_0^L (1 - u(x,t))\,dx
+     $$
+     (функция `front_position`, численное интегрирование трапециями).  
+   - **Численная скорость** $$v_{\text{num}}$$ определяется линейной регрессией $$X(t)$$ на последних 60% интервала времени.  
+   - **Теоретическая скорость КПП** $$c_{\text{KPP}} = 2\sqrt{D\,f'(0)}$$; для $$f(u)=u(1-u)$$ $$f'(0)=1$$, откуда $$c_{\text{KPP}} = 2\sqrt{D} = 2.0$$ (при \(D=1\)).  
+   - Программа выводит численную скорость, теоретическую и относительную ошибку.
+
+{{< include ../project/markdown/model02/model02.qmd >}}
+
+## Программная реализация **Стохастическое уравнение Ланжевена**
+
+
+1. **Постановка задачи**  
+   - Рассматривается **нуль-мерное** стохастическое дифференциальное уравнение (СДУ)  
+     $$
+     dx = -\gamma\,x\,dt + \sigma\,dW(t),
+     $$
+     где $$x(t)$$ – координата частицы, $$\gamma$$ – коэффициент трения, $$\sigma = \sqrt{2D}$$ – интенсивность шума, $$W(t)$$ – винеровский процесс.  
+   - В отличие от теоретической постановки (которая требует СДУЧП с мультипликативным шумом), данный код реализует **аддитивный шум** и **отсутствие пространственной координаты**.
+
+2. **Дискретизация и численный метод**  
+   - Для интегрирования СДУ используется **явный метод Эйлера–Маруямы** (`EM()`).  
+   - Шаг по времени: $$dt = 0.001$$, сохранение результата с шагом $$0.01$$.  
+   - Дрифт-функция: `drift!(du, u, p, t)` задаёт детерминированную часть $$-\gamma u$$.  
+   - Диффузионная функция: `diffusion!(du, u, p, t)` задаёт постоянную интенсивность шума $$\sqrt{2D}$$.
+
+3. **Ансамблевое моделирование**  
+   - Программа поддерживает запуск **ансамбля траекторий** (по умолчанию 200 реализаций).  
+   - Используется `EnsembleProblem` и тот же метод Эйлера–Маруямы для каждой траектории.  
+   - Начальное условие фиксировано: $$x_0 = 2.0$$.
+
+4. **Анализ результатов и сравнение с теорией**  
+   - Для процесса Орнштейна–Уленбека известны точные выражения:  
+     * теоретическое среднее: $$\mathbb{E}[x(t)] = x_0 e^{-\gamma t}$$;  
+     * теоретическая дисперсия: $$\mathrm{Var}[x(t)] = \frac{D}{\gamma}\left(1 - e^{-2\gamma t}\right)$$.  
+   - По ансамблю вычисляются **выборочное среднее** и **выборочная дисперсия** в каждый момент времени.  
+   - Строятся графики сравнения численных моментов с теоретическими кривыми.
+
+{{< include ../project/markdown/model03/model03.qmd >}}
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
+В ходе выполнения лабораторной работы были полностью реализованны программы и продемонстрированны результаты в виде графиков и прочих выводов программ. 
 
-# Список литературы{.unnumbered}
+# Список литературы
 
-::: {#refs}
-:::
+1.  **ZFK equation** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/ZFK\_equation](https://en.wikipedia.org/wiki/ZFK_equation)
+2.  **(PDF) On Travelling Waves for the Stochastic Fisher–Kolmogorov...** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/30845897\_On\_Travelling\_Waves\_for\_the\_Stochastic\_Fisher-Kolmogorov-Petrovsky-Piscunov\_Equation](https://www.researchgate.net/publication/30845897_On_Travelling_Waves_for_the_Stochastic_Fisher-Kolmogorov-Petrovsky-Piscunov_Equation)
+3.  **Stochastic simulation of hydrogen–oxygen auto-ignition at the microscale** — AIP Publishing, accessed on March 21, 2026, [https://pubs.aip.org/aip/jcp/article-pdf/doi/10.1063/5.0154560/18093147/084105\_1\_5.0154560.pdf](https://pubs.aip.org/aip/jcp/article-pdf/doi/10.1063/5.0154560/18093147/084105_1_5.0154560.pdf)
+4.  **Influence of Microscopic Stochastic Properties on the Auto- Ignition of Hydrogen / Oxygen Mixture** — icders, accessed on March 21, 2026, [http://www.icders.org/ICDERS2017/abstracts/ICDERS2017-1052.pdf](http://www.icders.org/ICDERS2017/abstracts/ICDERS2017-1052.pdf)
+5.  **Speed fluctuations of a stochastic Huxley–Zel'dovich front** — arXiv.org, accessed on March 21, 2026, [https://arxiv.org/html/2603.13458v1](https://arxiv.org/html/2603.13458v1)
+6.  **Effect of Microscopic Noise on Front Propagation** — ENS, accessed on March 21, 2026, [https://www.phys.ens.fr/\~ebrunet/Papers/BrunetDerrida.01.pdf](https://www.phys.ens.fr/~ebrunet/Papers/BrunetDerrida.01.pdf)
+7.  **Frank-Kamenetskii theory** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/Frank-Kamenetskii\_theory](https://en.wikipedia.org/wiki/Frank-Kamenetskii_theory)
+8.  **A Numerical Study of a Simple Stochastic/ Deterministic Model of Cycle-to-Cycle Combustion Fluctuations in Spark Ignition Engines** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/2146689\_A\_Numerical\_Study\_of\_a\_Simple\_Stochastic\_Deterministic\_Model\_of\_Cycle-to-Cycle\_Combustion\_Fluctuations\_in\_Spark\_Ignition\_Engines](https://www.researchgate.net/publication/2146689_A_Numerical_Study_of_a_Simple_Stochastic_Deterministic_Model_of_Cycle-to-Cycle_Combustion_Fluctuations_in_Spark_Ignition_Engines)
+9.  **Investigation of scalar dissipation rate fluctuations in non-premixed turbulent combustion using a stochastic approach** — Stanford University, accessed on March 21, 2026, [https://web.stanford.edu/group/pitsch/publication/PitschCTM\_5\_2001.pdf](https://web.stanford.edu/group/pitsch/publication/PitschCTM_5_2001.pdf)
+10. **Effect of small heat release and viscosity on thermal-diffusive...** — PMC, accessed on March 21, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC8511008/](https://pmc.ncbi.nlm.nih.gov/articles/PMC8511008/)
+11. **Traveling Waves and Exponential Nonlinearities in the Zeldovich–Frank-Kamenetskii Equation** — SIAM Journal on Applied Dynamical Systems, accessed on March 21, 2026, [https://epubs.siam.org/doi/10.1137/24M166200X](https://epubs.siam.org/doi/10.1137/24M166200X)
+12. **The critical wave speed for the fisher-kolmogorov-petrowskii-piscounov equation with cut-off** — Department of Mathematics and Statistics, accessed on March 21, 2026, [http://math.bu.edu/people/popovic/downloads/dpk2.pdf](http://math.bu.edu/people/popovic/downloads/dpk2.pdf)
+13. **Thermally Driven Convection Generated by Reaction Fronts in Viscous Fluids** — MDPI, accessed on March 21, 2026, [https://www.mdpi.com/2073-8994/16/3/269](https://www.mdpi.com/2073-8994/16/3/269)
+14. **Effect of Convection on a Propagating Front with a Solid Product: Comparison of Theory and Experiments** — The Journal of Physical Chemistry B, accessed on March 21, 2026, [https://pubs.acs.org/doi/10.1021/jp962354b](https://pubs.acs.org/doi/10.1021/jp962354b)
+15. **Front Roughening of Flames in Discrete Media** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/312907945\_Front\_Roughening\_of\_Flames\_in\_Discrete\_Media](https://www.researchgate.net/publication/312907945_Front_Roughening_of_Flames_in_Discrete_Media)
+16. **Stochastic Differential Equations for Chemical...** — eBooks, accessed on March 21, 2026, [https://content.e-bookshelf.de/media/reading/L-25005902-e7a8c784cf.pdf](https://content.e-bookshelf.de/media/reading/L-25005902-e7a8c784cf.pdf)
+17. **Interacting particles, the stochastic Fisher–Kolmogorov–Petrovsky–Piscounov equation, and duality** — IDEAS/RePEc, accessed on March 21, 2026, [https://ideas.repec.org/a/eee/phsmap/v325y2003i1p243-259.html](https://ideas.repec.org/a/eee/phsmap/v325y2003i1p243-259.html)
+18. **Langevin equation** — Wikipedia, accessed on March 21, 2026, [https://en.wikipedia.org/wiki/Langevin\_equation](https://en.wikipedia.org/wiki/Langevin_equation)
+19. **Stochastic modeling and simulation of reaction-diffusion system with Hill function dynamics** — PMC, accessed on March 21, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC5374650/](https://pmc.ncbi.nlm.nih.gov/articles/PMC5374650/)
+20. **(PDF) The critical wave speed for the Fisher–Kolmogorov–Petrowskii–Piscounov equation with cut-off** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/228681026\_The\_critical\_wave\_speed\_for\_the\_Fisher-Kolmogorov-Petrowskii-Piscunov\_equation\_with\_cut-off](https://www.google.com/search?q=https://www.researchgate.net/publication/228681026_The_critical_wave_speed_for_the_Fisher-Kolmogorov-Petrowskii-Piscunov_equation_with_cut-off)
+21. **Shift in the velocity of a front due to a cutoff** — Département de physique de l'ENS, accessed on March 21, 2026, [http://www.lps.ens.fr/\~derrida/PAPIERS/1997/PRE97.pdf](http://www.lps.ens.fr/~derrida/PAPIERS/1997/PRE97.pdf)
+22. **Brunet-Derrida velocity shift for branching-selection particle systems** — Stanford University, accessed on March 21, 2026, [http://math.stanford.edu/\~ryzhik/BANFF/berard.pdf](http://math.stanford.edu/~ryzhik/BANFF/berard.pdf)
+23. **(PDF) Investigation of scalar dissipation rate fluctuations in non-premixed turbulent combustion using a stochastic approach** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/publication/228597840\_Investigation\_of\_scalar\_dissipation\_rate\_fluctuations\_in\_non-premixed\_turbulent\_combustion\_using\_a\_stochastic\_approach](https://www.researchgate.net/publication/228597840_Investigation_of_scalar_dissipation_rate_fluctuations_in_non-premixed_turbulent_combustion_using_a_stochastic_approach)
+24. **arXiv:cond-mat/9511039v1 8 Nov 1995** — ResearchGate, accessed on March 21, 2026, [https://www.researchgate.net/profile/Rodolfo\_Cuerno/publication/1866434\_Stochastic\_Model\_for\_Surface\_Erosion\_Via\_Ion-Sputtering\_Dynamical\_Evolution\_from\_Ripple\_Morphology\_to\_Rough\_Morphology/links/02bfe50caf4b42c0cd000000/Stochastic-Model-for-Surface-Erosion-Via-Ion-Sputtering-Dynamical-Evolution-from-Ripple-Morphology-to-Rough-Morphology.pdf](https://www.researchgate.net/profile/Rodolfo_Cuerno/publication/1866434_Stochastic_Model_for_Surface_Erosion_Via_Ion-Sputtering_Dynamical_Evolution_from_Ripple_Morphology_to_Rough_Morphology/links/02bfe50caf4b42c0cd000000/Stochastic-Model-for-Surface-Erosion-Via-Ion-Sputtering-Dynamical-Evolution-from-Ripple-Morphology-to-Rough-Morphology.pdf)
+25. **[1701.07167] Front Roughening of Flames in Discrete Media** — arXiv.org, accessed on March 21, 2026, [https://arxiv.org/abs/1701.07167](https://arxiv.org/abs/1701.07167)
+26. **Chapter 2 - Thermodynamics of Combustion** — NRC, accessed on March 21, 2026, [https://www.nrc.gov/docs/ML1310/ML13109A563.pdf](https://www.nrc.gov/docs/ML1310/ML13109A563.pdf)
+27. **Numerical treatment of tempered space-fractional zeldovich-frank-kamenetskii equation** — Romanian Reports in Physics, accessed on March 21, 2026, [https://rrp.nipne.ro/IP/AP821.pdf](https://rrp.nipne.ro/IP/AP821.pdf)
+28. **Tracking the Frank-Kamenetskii Problem** — Wolfram Demonstrations Project, accessed on March 21, 2026, [https://demonstrations.wolfram.com/TrackingTheFrankKamenetskiiProblem/](https://demonstrations.wolfram.com/TrackingTheFrankKamenetskiiProblem/)
+29. **Application of Stochastic Differential System in Chemical Reactions...** — MATCH, accessed on March 21, 2026, [https://match.pmf.kg.ac.rs/electronic\_versions/Match71/n2/match71n2\_265-277.pdf](https://match.pmf.kg.ac.rs/electronic_versions/Match71/n2/match71n2_265-277.pdf)
+30. **Stochastic Partial Differential Equations Lecture Notes** — TU Berlin, accessed on March 21, 2026, [https://page.math.tu-berlin.de/\~scheutzow/SPDEmain.pdf](https://page.math.tu-berlin.de/~scheutzow/SPDEmain.pdf)
+31. **A Gentle Introduction to Stochastic Differential Equations with Brownian Noise** — University of Vaasa, accessed on March 21, 2026, [https://lipas.uwasa.fi/\~tsottine/lecture\_notes/sde\_sottinen.pdf](https://lipas.uwasa.fi/~tsottine/lecture_notes/sde_sottinen.pdf)
